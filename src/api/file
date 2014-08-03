@@ -1,0 +1,42 @@
+-- File API
+-- Made by Arkandos
+
+local _version = 1.0
+
+function version() -- Should be part of any api to check for updates
+	return _version
+end
+
+--[[ Open sFile in mode
+   @sFile = path to the file to be read
+   @mode 
+		"l" = read one line and return it as a string
+		"a" = read the entire file and return it as a string
+]]-- 
+function read(sFile, mode) 
+	if mode == "l" then 
+		hRead = assert(fs.open(sFile, "r"))
+		local text = hRead.readLine()
+		hRead.close()
+		return text
+
+	elseif mode == "a" then -- Read the whole file
+		hRead = assert(fs.open(sFile, "r"))
+		local text = hRead.readAll()
+		hRead.close()
+		return text
+	end
+end
+
+--[[ Write input into sFile using mode
+	@sFile = path to the file to be written
+	@mode
+		"w" = overwrite the file
+		"a" = append the file
+	@input = string to be written to file
+]]--
+function write(sFile, mode, input) 
+	hWrite = assert(fs.open(sFile, mode)) 
+	local text = hWrite.write(input)
+	hWrite.close()
+end

@@ -1,0 +1,109 @@
+-- APILoader 
+-- Made by Arkandos
+
+local _version = 2.21
+local supported = {"file"} -- List of supported APIS
+local filelist = {}
+local quiet = false
+
+-- Local functions
+function qprint(input)
+	if not quiet then
+		print(input)
+	end
+end
+
+-- Global functions
+-- Load all APIs found in the folder "api". If input is true, then dont print messages
+function load(input) 
+
+	if input == true then quiet = true end
+
+	qprint("Apiloader v.".._version)
+
+	qprint("Getting available apis")
+
+	filelist = fs.list("api")
+
+	-- If the program cant find any apis then exit the program
+	if filelist == nil then           
+		print("Could not find any apis")
+		sleep(2)
+		return	-- Exit the program
+	end
+
+	qprint("Found "..#filelist.." APIs")
+	
+	for i=1, #filelist do         
+		os.loadAPI("api/"..filelist[i])  -- Load the first api the program founds, then the next etc.
+		if checkDependency(filelist[i]) then -- Check if all dependencies are available
+			qprint("Loaded "..filelist[i].." api")
+		else
+			qprint("Could not load "..filelist[i].." api v."..checkVersion())
+			qprint("Missing dependency: "..checkDependency(filelist[i]))
+			os.unloadAPI("api/"..filelist[i])
+		end
+	end
+
+	qprint(apiloader.isSupported().."/"..#filelist.." are supported")
+	qprint("Loaded "..#filelist.." APIs")
+end
+
+
+function unload() -- Unload all APIs
+	local filelist = fs.list("api")
+	for i=1, #filelist do
+		os.unloadAPI("api/"..filelist[i])
+	end
+	print("Unloaded "..#filelist.." APIs")
+end
+
+function isSupported() -- Check if API is supported
+	local numb = 0
+	for i = 1, #filelist do
+		for y = 1, #supported do
+			if filelist[i] == supported[y] then
+				numb = numb + 1
+			end
+		end
+	end
+	return numb
+end
+
+function checkVersion(_api) -- Checks the current version of the _api.
+	if _api.version() == nil then
+		return 0
+	else
+		return _api.version()
+	end
+end
+
+function checkDependency(_api) -- Check if all dependencies are available
+	if _api.dependency == nil then
+		return true
+	end
+	
+	d = _api.dependency
+	depend = {}
+	
+	for i=1, #d do
+		local name = d[i]
+		depend[name] = false
+	end
+	
+	for k, v in pairs(depend) do
+		for j=1, #filelist do
+			if k == filelist[j] then
+				depend[k] = true
+			end
+		end
+	end
+	
+	for k, v in pairs(depend) do
+		if v == false then
+			return k.." api"
+		end
+	end
+	
+	return true
+end

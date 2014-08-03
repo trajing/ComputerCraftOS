@@ -1,0 +1,24 @@
+
+-- Changing osPullEvent to osPullEventRaw to disable the use of terminating the program through CTRL+T
+os.PullEventOld = os.PullEvent
+os.PullEvent = os.PullEventRaw
+
+local version = 0.1
+local name = "Feed The OS"
+
+
+local function clearScreen()
+	term.clear()
+	term.setCursorPos(1, 1)
+end
+
+local function isColor()
+	return term.isColor()
+end
+
+-- Start of program
+clearScreen()
+print(name .. " v." .. version)
+
+os.loadAPI("apiloader")
+apiloader.load()
