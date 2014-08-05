@@ -1,0 +1,63 @@
+--Log: API to create logs for programs for general use or debugging.
+--casilleroATR
+
+local VERSION = 1.0
+
+function version()
+  return VERSION
+end
+
+local logEnabled = false -- suppress or enable logging. Set by function setLoggingEnabled()
+local logPath = nil -- Path for log file. Set by function
+
+function setLoggingEnabled(state)
+ --function to enable or disable logging. 
+ --State must be a boolean (true = enabled, false = disabled)
+ 
+	if type(state) == "boolean" then
+		logEnabled = state
+	else
+		error("setLoggingEnabled: Expected boolean")
+	end
+end
+
+function setLogPath(name)
+  -- function to set the path for the log file
+  
+	logPath = tostring(name)
+end
+
+function getLogPath()
+  -- returns log path, just in case
+  
+	return logPath
+end
+
+function initLog(deleteWhileLogDisabled)
+  -- creates the log file.
+  -- deleteWhileLogDisabled (boolean) - if set to true then this will delete the log at path logPath. This is useful if you are developing and want to disable logging when you are finished. It cleans up the log files automatically.
+  
+	if logEnabled == true and logPath ~= nil then
+		local file = fs.open(logPath, "w")
+		file.close()
+	elseif logEnabled == false and deleteWhileLogDisabled == true and logPath ~= nil then
+		fs.delete(logPath)
+	end
+end
+
+function printToLog(str)
+  -- str - (string) This function appends any text you want to your log file and inserts a new line character
+  
+	if logEnabled == true and fs.exists(logPath) == true then
+		local file = fs.open(logPath, "a")
+		file.write(str.."\n")
+		file.close()
+	end
+end
+
+function printAndLog(str)
+  -- combines the function of printToLog while also printing str to the console.
+  
+	print(str)
+	printToLog(str)
+end
