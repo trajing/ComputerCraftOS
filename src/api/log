@@ -1,7 +1,8 @@
 --Log: API to create logs for programs for general use or debugging.
 --casilleroATR
 
-local VERSION = 1.2
+local VERSION = 1.3
+dependency = {"file"}
 
 function version()
   return VERSION
@@ -58,9 +59,7 @@ function printToLog(str)
   -- str - (string) This function appends any text you want to your log file and inserts a new line character
   
 	if logPath ~= nil and logEnabled == true and fs.exists(logPath) == true then
-		local file = fs.open(logPath, "a")
-		file.write(str.."\n")
-		file.close()
+		file.write(logPath, "a", str.."\n")
 	end
 end
 
