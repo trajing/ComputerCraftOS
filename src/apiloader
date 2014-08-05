@@ -5,14 +5,19 @@ local _version = 2.22
 local supported = {"file", "cloud", "log"} -- List of supported APIS
 local filelist = {}
 local quiet = false
+local logList = {}
 
 -- Local functions
 function qprint(input)
 	if quiet then
-		log.printToLog("[APILoader] "..input)
+		addToLog("[APILoader] "..input)
 	else
 		print(input)
 	end
+end
+
+local function addToLog(str)
+	table.insert(logList, str)
 end
 
 -- Global functions
@@ -21,11 +26,8 @@ function load(input)
 
 	if input == true then 
 		quiet = true
-	else
-		log.setLoggingEnabled(true)
-		log.setLogPath("FTOS")
-		log.initLog()
 	end
+	
 
 	qprint("Apiloader v.".._version)
 
@@ -52,9 +54,15 @@ function load(input)
 			os.unloadAPI("api/"..filelist[i])
 		end
 	end
-
+	
+	log.setLoggingEnabled(true)
+	log.setLogPath("FTOS")
+	log.initLog()
+	
 	qprint(apiloader.isSupported().."/"..#filelist.." are supported")
 	qprint("Loaded "..#filelist.." APIs")
+	
+	for i=1, #logList do log.printToLog(logList[i]) end
 end
 
 
