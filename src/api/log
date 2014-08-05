@@ -9,10 +9,11 @@ end
 
 local logEnabled = false -- suppress or enable logging. Set by function setLoggingEnabled()
 local logPath = nil -- Path for log file. Set by function
+local logDirectory = "logs"
 
 function setLoggingEnabled(state)
- --function to enable or disable logging. 
- --State must be a boolean (true = enabled, false = disabled)
+  --function to enable or disable logging. 
+  --State must be a boolean (true = enabled, false = disabled)
  
 	if type(state) == "boolean" then
 		logEnabled = state
@@ -23,13 +24,20 @@ end
 
 function setLogPath(name)
   -- function to set the path for the log file
-  
+
 	logPath = tostring(name)
 end
 
-function getLogPath()
-  -- returns log path, just in case
+function setLogDirectory(name)
+  -- renames logDirectory (set to logs by default) allowing the user to make a custom log directory
   
+  	logDirectory = tostring(name)
+end
+
+function getLogPath()
+  -- returns log path, just in case  
+	
+	
 	return logPath
 end
 
@@ -38,6 +46,7 @@ function initLog(deleteWhileLogDisabled)
   -- deleteWhileLogDisabled (boolean) - if set to true then this will delete the log at path logPath. This is useful if you are developing and want to disable logging when you are finished. It cleans up the log files automatically.
   
 	if logEnabled == true and logPath ~= nil then
+		logPath = logDirectory.."/"..logPath
 		local file = fs.open(logPath, "w")
 		file.close()
 	elseif logEnabled == false and deleteWhileLogDisabled == true and logPath ~= nil then
