@@ -1,0 +1,107 @@
+-- CloudAPI BETA
+-- Made by Arkandos
+
+local _version = 0.2
+dependency = {"file"}
+
+-- Function to check current version in Apiloader
+function version() 
+	return _version
+end
+
+-- Host a cloud directory at dir, wait until timeout
+function host(dir, _timeout) 
+	if dir == nil then
+		print("[CLOUD] Please specify a directory for cloud hosting")
+		return
+	end
+
+	if _timeout == nil then
+		_timeout = 10
+	end
+
+	print("Cloud directory: "..dir)
+	print("Awaiting orders")
+
+	id, message = rednet.receive(_timeout)
+	if message == "upload" then
+		print("Receiving file")
+		local cFile = textutils.unserialize(message)
+		local fName = cFile[1]
+		local fContent = cFile[2]
+		print("File received")
+		print("Saving")
+		fs.delete(fName)
+		file.write(fName, "w", ""..dir.."/"..fContent.."")
+		print("File saved")
+		sleep(1)
+		rednet.send(id, "done")
+		return
+
+	elseif message == "sync" then
+		print("Syncing files with "..id)
+		local fList = {}
+		fList = fs.list(dir)
+	
+		for i=1,#fList do
+			cFile = file.read(dir.."/"..fList[i], "r")
+			local fFile = {fList[i], cFile}
+			rednet.send(id, textutils.serialize(fFile))
+		end
+	
+		rednet.send(id, "end")
+		return
+	end
+
+end
+
+-- Upload a file to the cloudstorage id
+function upload(sFile, id)
+	if not fs.exists(sFile) then
+		print("[CLOUD] Could not find file")
+		return
+	end
+
+
+	fContent = file.read(sFile, "r")
+
+	rednet.send(id, "upload")
+	sleep(0.3)
+	cFile = file.read(sFile, "r")
+	local fFile = {sFile, cFile}
+	rednet.send(id, textutils.serialize(fFile))
+
+	id2, message = rednet.receive(5)
+	if id2 == id and message == "done" then
+		return true
+	else
+		return false
+	end
+end
+
+-- Sync with the cloud computer
+function sync(dir, id)
+	if not fs.exists(dir) then
+		print("[CLOUD] Could not find directory")
+		return
+	end
+
+
+
+	rednet.send(id, "sync")
+
+	while true do
+		id, message = rednet.receive(5)
+		local cFile = textutils.unserialize(message)
+		local fName = cFile[1]
+		local fContent = cFile[2]
+
+		if fName == "end" then
+			break
+		end
+
+		file.write(dir.."/"..fName, "w", fContent)
+
+	end
+	return
+end

@@ -11,7 +11,7 @@ end
    @sFile = path to the file to be read
    @mode 
 		"l" = read one line and return it as a string
-		"a" = read the entire file and return it as a string
+	    nil = read the entire file and return it as a string
 ]]-- 
 function read(sFile, mode) 
 	if mode == "l" then 
@@ -20,7 +20,7 @@ function read(sFile, mode)
 		hRead.close()
 		return text
 
-	elseif mode == "a" then -- Read the whole file
+	else -- Read the whole file
 		hRead = assert(fs.open(sFile, "r"))
 		local text = hRead.readAll()
 		hRead.close()

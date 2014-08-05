@@ -1,0 +1,44 @@
+
+tArgs = { ... }
+
+local function printUsage(mode)
+	local host = "cloud host <dir> <timeout>"
+	local upload = "cloud upload <file> <cloudId>"
+	local sync = "cloud sync <dir> <cloudId>"
+	local remove = "cloud remove <file> <cloudId>"
+	if mode == nil then
+		print("Usage: "..host)
+		print("Usage: "..upload)
+		print("Usage: "..sync)
+		print("Usage: "..remove)
+	elseif mode == "host" then print("Usage: "..host)
+	elseif mode == "upload" then print("Usage: "..upload)
+	elseif mode == "sync" then print("Usage: "..sync)
+	elseif mode == "remove" then print("Usage: "..remove)
+	end
+end
+
+local mode = tArgs[1]
+local p1 = tArgs[2]
+local p2 = tArgs[3]
+
+if mode == nil then printUsage()
+elseif p1 == nil then printUsage(mode)
+elseif mode == "upload" or mode == "sync" then
+	if p1 == nil or p2 == nil then printUsage(mode) end
+end
+
+if mode == "host" then
+	print("Hosting cloudstorage")
+	while true do
+		cloud.host(p1, p2)
+	end
+
+elseif mode == "upload" then
+	if cloud.upload(p1, p2) then print("Uploaded successfully") else print("Could not contact cloudserver") end
+elseif mode == "sync" then
+	if cloud.sync(p1, p2) then print("Synced successfully") end
+elseif mode == "remove" then
+	cloud.remove(p1, p2)
+end
+
