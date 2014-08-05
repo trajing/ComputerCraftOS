@@ -1,7 +1,7 @@
 --Log: API to create logs for programs for general use or debugging.
 --casilleroATR
 
-local VERSION = 1.0
+local VERSION = 1.2
 
 function version()
   return VERSION
