@@ -48,7 +48,7 @@ end
 function printToLog(str)
   -- str - (string) This function appends any text you want to your log file and inserts a new line character
   
-	if logEnabled == true and fs.exists(logPath) == true then
+	if logPath ~= nil and logEnabled == true and fs.exists(logPath) == true then
 		local file = fs.open(logPath, "a")
 		file.write(str.."\n")
 		file.close()
