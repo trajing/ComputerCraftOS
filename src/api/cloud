@@ -1,8 +1,15 @@
 -- CloudAPI BETA
 -- Made by Arkandos
 
-local _version = 0.2
+local _version = 0.21
 dependency = {"file"}
+
+local function logInfo(str)
+	if log.getLogPath ~= "FTOS" then
+		log.setLogPath("FTOS")
+	end
+	log.logInfoToLog("[Cloud] "..str)
+end
 
 -- Function to check current version in Apiloader
 function version() 
@@ -20,26 +27,24 @@ function host(dir, _timeout)
 		_timeout = 10
 	end
 
-	print("Cloud directory: "..dir)
-	print("Awaiting orders")
-
 	id, message = rednet.receive(_timeout)
-	if message == "upload" then
-		print("Receiving file")
+	if message == "cloudUpload" then
+		local id, message = rednet.receive(_timeout)
+		logInfo("Receiving file")
 		local cFile = textutils.unserialize(message)
 		local fName = cFile[1]
 		local fContent = cFile[2]
-		print("File received")
-		print("Saving")
+		logInfo("File received")
+		logInfo("Saving")
 		fs.delete(fName)
 		file.write(fName, "w", ""..dir.."/"..fContent.."")
-		print("File saved")
+		logInfo("File saved")
 		sleep(1)
 		rednet.send(id, "done")
 		return
 
-	elseif message == "sync" then
-		print("Syncing files with "..id)
+	elseif message == "cloudSync" then
+		logInfo("Syncing files with "..id)
 		local fList = {}
 		fList = fs.list(dir)
 	
@@ -51,6 +56,12 @@ function host(dir, _timeout)
 	
 		rednet.send(id, "end")
 		return
+	elseif message == "cloudRemove" then
+		local id, message = rednet.receive(_timeout)
+		if message ~= nil then
+			logInfo("Removed "..message)
+			fs.delete(dir.."/"..message)
+		end
 	end
 
 end
@@ -65,7 +76,7 @@ function upload(sFile, id)
 
 	fContent = file.read(sFile, "r")
 
-	rednet.send(id, "upload")
+	rednet.send(id, "cloudUpload")
 	sleep(0.3)
 	cFile = file.read(sFile, "r")
 	local fFile = {sFile, cFile}
@@ -88,7 +99,7 @@ function sync(dir, id)
 
 
 
-	rednet.send(id, "sync")
+	rednet.send(id, "cloudSync")
 
 	while true do
 		id, message = rednet.receive(5)
@@ -96,7 +107,7 @@ function sync(dir, id)
 		local fName = cFile[1]
 		local fContent = cFile[2]
 
-		if fName == "end" then
+		if fName == "end" or fName == nil then
 			break
 		end
 
@@ -104,4 +115,10 @@ function sync(dir, id)
 
 	end
 	return
+end
+
+-- Remove file from the cloud storage
+function remove(sFile, id)
+	rednet.send(id, "cloudRemove")
+	rednet.send(id, sFile)
 end

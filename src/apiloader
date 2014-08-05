@@ -1,14 +1,16 @@
 -- APILoader 
 -- Made by Arkandos
 
-local _version = 2.21
-local supported = {"file"} -- List of supported APIS
+local _version = 2.22
+local supported = {"file", "cloud", "log"} -- List of supported APIS
 local filelist = {}
 local quiet = false
 
 -- Local functions
 function qprint(input)
-	if not quiet then
+	if quiet then
+		log.printToLog("[APILoader] "..input)
+	else
 		print(input)
 	end
 end
@@ -17,7 +19,13 @@ end
 -- Load all APIs found in the folder "api". If input is true, then dont print messages
 function load(input) 
 
-	if input == true then quiet = true end
+	if input == true then 
+		quiet = true
+	else
+		log.setLoggingEnabled(true)
+		log.setLogPath("FTOS")
+		log.initLog()
+	end
 
 	qprint("Apiloader v.".._version)
 

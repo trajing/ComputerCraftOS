@@ -22,3 +22,5 @@ print(name .. " v." .. version)
 
 os.loadAPI("apiloader")
 apiloader.load()
+
+if log.getLogPath() == "FTOS" then log.printToLog("Initialized "..name.." v." .. version) end
