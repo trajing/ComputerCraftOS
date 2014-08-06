@@ -2,7 +2,7 @@
 -- Made by Arkandos
 
 local _version = 2.22
-local supported = {"file", "cloud", "log"} -- List of supported APIS
+local supported = {"file", "cloud", "log", "modem"} -- List of supported APIS
 local filelist = {}
 local quiet = false
 local logList = {}

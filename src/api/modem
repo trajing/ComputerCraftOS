@@ -1,0 +1,115 @@
+-- ModemAPI
+-- Made by Arkandos
+
+local _version = 0.1
+local maxSize = 65535
+local channelList = {}
+local m
+
+-- Local function just to log info
+local function logInfo(str)
+	if log.getLogPath ~= "FTOS" then
+		log.setLogPath("FTOS")
+	end
+	log.printToFile("[Modem] "..str)
+end
+
+function version()
+	return _version
+end
+
+-- Automatically wrap to the first modem found
+function wrapModem()
+	if m == nil then
+		local periList = peripheral.getNames()
+		
+		for i=1, #periList do
+			if peripheral.getType(periList[i]) == "modem" then
+				m = peripheral.wrap(periList[i])
+			end
+		end
+	end
+end
+
+-- Just like modem.transmit
+function transmit(channel, replyChannel, message)
+	m.transmit(channel, replyChannel, message)
+end
+
+-- Uses ids from the channelList to transmit
+function transmitById(id, id2, message)
+	transmit(channelList[id], channelList[id2], message)
+end
+
+-- Like rednet.receive
+function receive(channel, timeout)
+	if timeout == nil then timeout = 10 end
+	local timer
+	if timeout ~= 0 then timer = os.startTimer(timeout) end
+	
+	while true do
+		local event, modemSide, senderChannel, replyChannel, message, distance = os.pullEvent()
+		if event == "timer" and modemSide == timer then break end
+		if event == "modem_message" and senderChannel == channel then return message end
+	end
+end
+
+-- Uses ids to receive
+function receiveById(id, timeout)
+	receive(channelList[id], timeout)
+end
+
+-- Gets the next available channel
+function getNextChannel()
+	local highest = 1000
+	for id, channel in pairs(channelList) do
+		if channel > highest then
+			highest = channel
+		end
+	end
+	
+	return highest + 1
+end
+
+-- Get the channelid
+function getChannelId(id)
+	return channelList[id]
+end
+
+function isOpen(channel)
+	return m.isOpen(channel)
+end
+
+function isWireless()
+	return m.isWireless()
+end
+
+function register(id, channel)
+	channelList[id] = channel
+	logInfo("Registred "..id.." as "..channel)
+end
+
+function open(id, channel)
+	wrapModem()
+	register(id, channel)
+end
+
+-- Open the next channel available
+function openNext(id)
+	local channel = getNextChannel()
+	open(id, channel)
+	return channel
+end
+
+function close()
+	m.close()
+end
+
+function closeAll()
+	m.closeAll()
+end
+
+send = transmit
+transmitWithId = transmitById
+sendWithId = transmitById
+sendById = transmitById
