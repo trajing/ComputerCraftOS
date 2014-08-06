@@ -1,7 +1,7 @@
 -- APILoader 
 -- Made by Arkandos
 
-local _version = 2.22
+local _version = 2.23
 local supported = {"file", "cloud", "log", "modem", "stringUtils"} -- List of supported APIS
 local filelist = {}
 local quiet = false
