@@ -11,7 +11,7 @@ Objectives:
 
 ]]
 
-local VERSION = 1.0
+local VERSION = 0.1
 
 function constructSelectionMenu(textAlignment, bodyIndent, textColor, backColor, indentSelected, yStart, yEnd)
 	--[[
