@@ -1,8 +1,8 @@
 --Log: API to create logs for programs for general use or debugging.
 --casilleroATR
 
-local VERSION = 1.3
-dependency = {"file"}
+local VERSION = 1.4
+dependency = {"file", "stringUtils"}
 
 function version()
   return VERSION
@@ -25,14 +25,15 @@ end
 
 function setLogPath(name)
   -- function to set the path for the log file
-
-	logPath = tostring(name)
+    
+	logPath = logDirectory.."/"..tostring(name)
 end
 
 function setLogDirectory(name)
   -- renames logDirectory (set to logs by default) allowing the user to make a custom log directory
-  
+  	logPath = stringUtils.truncateString(logPath, "p", "/")
   	logDirectory = tostring(name)
+  	logPath = logDirectory.."/"..logPath
 end
 
 function getLogPath()
@@ -47,7 +48,6 @@ function initLog(deleteWhileLogDisabled)
   -- deleteWhileLogDisabled (boolean) - if set to true then this will delete the log at path logPath. This is useful if you are developing and want to disable logging when you are finished. It cleans up the log files automatically.
   
 	if logEnabled == true and logPath ~= nil then
-		logPath = logDirectory.."/"..logPath
 		local file = fs.open(logPath, "w")
 		file.close()
 	elseif logEnabled == false and deleteWhileLogDisabled == true and logPath ~= nil then
