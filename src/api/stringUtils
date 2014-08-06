@@ -1,0 +1,32 @@
+-- stringUtils: a bunch of extra string Manipulation functions. I will add more when I come up with new ideas/needs. Contributions very welcome
+
+
+local VERSION = 1.0
+
+function version()
+	return VERSION
+end
+
+function truncateString(str, mode, a)
+	--[[
+		str - (string) the base string that you want truncated
+		mode - (string) truncation mode, 2 are available
+			"p" - prefix, remove a substring from the first character until the first instance of character represented by parameter a
+			"s" - suffix, remove a substring between the last instance of character a and the last character in the string
+		a - (string) the character or pattern that you want to look out for to decide where to start snipping from the string
+		
+		this function snips substrings from either the beginning or the end of string, and returns the truncated string
+	]]
+	
+	if mode == "s" then
+		str = string.reverse(str)
+	elseif mode ~= "p" then
+		return str
+	end
+	local index = string.find(str, a)
+	local subStr = string.sub(str, index+1)
+	if mode == "s" then
+		subStr = string.reverse(subStr)
+	end
+	return subStr
+end
