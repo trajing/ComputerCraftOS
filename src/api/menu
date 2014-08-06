@@ -1,0 +1,134 @@
+
+--[[Menu API: Help creating menus.
+
+Objectives:
+	1. Finish drawMenu()
+	    requires arranging all menu items into pages
+	    put framework in place to draw the right page and highlight the right item
+	    might need rewriting.
+	2. Write navigateMenu()
+	    this one should be much easier. It will change the highlighted item in response to user key input and redraw the menu to take that into account
+
+]]
+
+local VERSION = 1.0
+
+function constructSelectionMenu(textAlignment, bodyIndent, textColor, backColor, indentSelected, yStart, yEnd)
+	--[[
+		refer to editMenuConfig for information in parameters
+		Creates an empty table which will be used to store a menu
+		Also initialises cetain variables that are used to construct the menu by using editMenuConfig()
+	]]	
+	
+	local t = {
+		["CONFIG"] = editMenuConfig(textAlignment, bodyIndent, textColor, backColor, indentSelected)
+		}
+	return t
+end
+
+function editMenuConfig(textAlignment, bodyIndent, textColor, backColor, highlightColor, indentSelected, yStart, yEnd)	
+	--[[
+		textAlignment - (string) allows the user to set whether the text is centred, set left or set right (will fully implement this in a seperate API if not done here on initial commit)
+		bodyIndent - (number) allows the user to add an indent (the number adds to x value of start of each line)
+		textColor - (number) on advanced computers allows the user to control the text color in the menu
+		backColor - (number) on advanced computers allows the user to control the background color in the menu
+		highlightColor - (number) to indicate current selection there is a highlight of this color placed on your selection
+		indentSelected - (boolean) you can also indicate current selection by having the selection indented. It forces on on non-advanced computers and is optional otherwise
+		yStart - (number) the y coordinate that you wish to start the menu on. defaults to 1
+		yEnd - (number) the y coordinate that you wish to end the menu on. defaults to max size.
+		
+		this function edits the configuration of a menu, changing some of its properties. It is called automatically by constructSelectionMenu() 
+	]]
+	
+	if type(bodyIndent) ~= "number" then
+		bodyIndent = 0
+	end
+	if type(yStart) ~= "number" then
+		yStart = 1
+	end
+	if type(yEnd) ~= "number" then
+		local x,y = term.getSize()
+		yEnd = y
+	end
+	local tempConfig = {
+		["alignment"] = nil,
+		["bodyIndent"] = bodyIndent,
+		["textColor"] = nil,
+		["backColor"] = nil,
+		["highlight"] = nil,
+		["indentSelected"] = indentSelected,
+		["yStart"] = yStart,
+		["yEnd"] = yEnd,
+		}
+	if textAlignment == "c" or textAlignment == "l" or textAlignment == "r" then
+		tempConfig["alignment"] = textAlignment
+		if textAlignment == "r" then
+			tempConfig["bodyIndent"] = 0
+		end
+	else
+		tempConfig["alignment"] = "l"
+	end
+	if term.isColor() == true then
+		local backColorTemp = backColor or colors.black
+		tempConfig["backColor"] = backColorTemp
+		tempConfig["textColor"] = textColor or colors.white
+		tempConfig["highlight"] = highlightColor or backColorTemp
+	else
+		tempConfig["indentSelected"] = true
+	end
+end
+
+function addOptionToMenu(targetSelectionMenu, message, data)
+	--[[
+		targetSelectionMenu - (table) the menu you are adding this option to.
+		message - (string) the name of the option
+		data - (any type) optional, any extra data you wish to be returned if this option is selected. If nil then it defaults to the same as message. Supports in any value type.
+		
+		To add an option to an existing menu, use this function. It packs up all the relevant data and loads it into the menu so it can be used later.
+	]]
+	
+	local temp = {
+		["message"] = message,
+		["data"] = data or message,
+		["selected"] = false, -- This stores whether or not this option is currently selected by the user
+		}
+	table.insert(targetSelectionMenu, 0, temp)
+end
+
+function drawMenu(menu)
+	--[[
+		menu - (table) The menu object that you want to display.
+		
+		This function draws the menu out and highlights (and/or indents) the selected answer. This is called automatically everytime you navigate through the menu using navigateMenu(). It knows a selection is highlighted because the menu part has a true value stored in it. 	
+		Currently unfinished
+	
+	]]
+	local tempMenu = menu
+	tempMenu["CONFIG"] = nil
+	local numberMenuItems = #menu
+	local yEnd = menu["CONFIG"]["yEnd"]
+	local pageHeight = menu["CONFIG"]["yEnd"] - menu["CONFIG"]["yStart"]
+	local numberOfPages = math.ceil(numberMenuItems/pageHeight)
+	local menuTable = {}
+	local current = 0
+	for i = 1, numberOfPages do		
+		local page = {}
+		for j = 1, pageHeight do
+			current = current + 1
+			page[j] = tempMenu[j]
+		end
+		menuTable[i] = page			
+	end
+	local currentPage, currentItem = 1,1
+end
+
+function navigateMenu(menu)
+	--[[
+		menu - (table) The menu object that you want to navigate through.
+		
+		This function allows you to navigate through a menu using the direction keys on your keyboard. Up and down work as expected and left and right allow you to cycle through whole pages at a time.
+		You should call drawMenu() once before you call navigateMenu
+		Will start soon
+	]]
+	
+end
