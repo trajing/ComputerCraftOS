@@ -7,24 +7,29 @@ function version()
 	return VERSION
 end
 
-function truncateString(str, mode, a)
+function truncateString(str, mode, a, inclusive)
 	--[[
 		str - (string) the base string that you want truncated
 		mode - (string) truncation mode, 2 are available
 			"p" - prefix, remove a substring from the first character until the first instance of character represented by parameter a
 			"s" - suffix, remove a substring between the last instance of character a and the last character in the string
 		a - (string) the character or pattern that you want to look out for to decide where to start snipping from the string
-		
+		inclusive = (boolean) optional, you can set inclusive to true to make this function remove everything including the pattern (a) or set to false to leave the pattern in. Defaults to true
 		this function snips substrings from either the beginning or the end of string, and returns the truncated string
 	]]
 	
+	if inclusive == false then
+		inclusive = 0
+	else
+		inclusive = 1
+	end
 	if mode == "s" then
 		str = string.reverse(str)
 	elseif mode ~= "p" then
 		return str
 	end
 	local index = string.find(str, a)
-	local subStr = string.sub(str, index+1)
+	local subStr = string.sub(str, index+inclusive)
 	if mode == "s" then
 		subStr = string.reverse(subStr)
 	end
