@@ -132,3 +132,16 @@ function navigateMenu(menu)
 	]]
 	
 end
+
+function menuEventHandler()
+	--[[
+		this is a potential function that I might be able to add easily enough. It should be able to work out how the user
+		is inputting into the the terminal (mouse, keys, etc) and calls a function to modify the menuobject appropriately.
+		Will  probably require the right menu object to be passed as a parameter and return the modified object. 
+		Should work out how the user is trying to respond to the menu. If it can work out how to respond (say a directional key was pressed, it will call the directional key naivagation function)
+		Ideally, this should help the user by supporting keyboard responses and mouse responses (and maybe other responses?) simultaneously
+	]]
+	--actual code coming soon, concept only for now, sozzard
+end
+
+		
