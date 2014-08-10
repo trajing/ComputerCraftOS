@@ -1,34 +1,37 @@
+os.loadAPI("log") -- needs log and file api for now, will implement apiloader properly eventually
+os.loadAPI("file")
+log.setLoggingEnabled(true)
+log.setLogPath("menuLog")
+log.initLog(true)
 
 --[[Menu API: Help creating menus.
 
 Objectives:
-	1. Finish drawMenu()
-	    requires arranging all menu items into pages
-	    put framework in place to draw the right page and highlight the right item
-	    might need rewriting.
-	2. Write navigateMenu()
-	    this one should be much easier. It will change the highlighted item in response to user key input and redraw the menu to take that into account
+	1. 
 
 ]]
 
-local VERSION = 0.1
+local VERSION = 0.2
 
-function constructSelectionMenu(textAlignment, bodyIndent, textColor, backColor, indentSelected, yStart, yEnd)
+function newMenu(textAlignment, bodyIndent, textColor, backColor, highlightColor, indentSelected, yStart, yEnd)
 	--[[
-		refer to editMenuConfig for information in parameters
+		refer to editMenuConfigActual for information in parameters
 		Creates an empty table which will be used to store a menu
 		Also initialises cetain variables that are used to construct the menu by using editMenuConfig()
 	]]	
 	
 	local t = {
-		["CONFIG"] = editMenuConfig(textAlignment, bodyIndent, textColor, backColor, indentSelected)
+		["CONFIG"] = editMenuConfigActual(textAlignment, bodyIndent, textColor, backColor, highlightColor, indentSelected, yStart, yEnd)
 		}
 	return t
 end
 
-function editMenuConfig(textAlignment, bodyIndent, textColor, backColor, highlightColor, indentSelected, yStart, yEnd)	
+function editMenuConfig(menu, textAlignment, bodyIndent, textColor, backColor, highlightColor, indentSelected, yStart, yEnd)	
 	--[[
 		textAlignment - (string) allows the user to set whether the text is centred, set left or set right (will fully implement this in a seperate API if not done here on initial commit)
+			- "l" = align left
+			- "r" = align right
+			- "c" = align centre
 		bodyIndent - (number) allows the user to add an indent (the number adds to x value of start of each line)
 		textColor - (number) on advanced computers allows the user to control the text color in the menu
 		backColor - (number) on advanced computers allows the user to control the background color in the menu
@@ -36,10 +39,18 @@ function editMenuConfig(textAlignment, bodyIndent, textColor, backColor, highlig
 		indentSelected - (boolean) you can also indicate current selection by having the selection indented. It forces on on non-advanced computers and is optional otherwise
 		yStart - (number) the y coordinate that you wish to start the menu on. defaults to 1
 		yEnd - (number) the y coordinate that you wish to end the menu on. defaults to max size.
-		
-		this function edits the configuration of a menu, changing some of its properties. It is called automatically by constructSelectionMenu() 
 	]]
 	
+	menu["CONFIG"] = editMenuConfigActual(textAlignment, bodyIndent, textColor, backColor, indentSelected)
+	return menu
+end
+
+local function editMenuConfigActual(textAlignment, bodyIndent, textColor, backColor, highlightColor, indentSelected, yStart, yEnd)	
+	--[[
+			this function edits the configuration of a menu, changing some of its properties. It is called automatically by newMenu() 
+	]]
+	
+	backColorTemp = backColorTemp or colors.black
 	if type(bodyIndent) ~= "number" then
 		bodyIndent = 0
 	end
@@ -76,9 +87,10 @@ function editMenuConfig(textAlignment, bodyIndent, textColor, backColor, highlig
 	else
 		tempConfig["indentSelected"] = true
 	end
+	return tempConfig
 end
 
-function addOptionToMenu(targetSelectionMenu, message, data)
+function addOptionToMenu(menu, message, data)
 	--[[
 		targetSelectionMenu - (table) the menu you are adding this option to.
 		message - (string) the name of the option
@@ -92,10 +104,50 @@ function addOptionToMenu(targetSelectionMenu, message, data)
 		["data"] = data or message,
 		["selected"] = false, -- This stores whether or not this option is currently selected by the user
 		}
-	table.insert(targetSelectionMenu, 0, temp)
+	table.insert(menu, 0, temp)
 end
 
-function drawMenu(menu)
+local function convertColumnMenu(menu, config)
+	--[[
+		menu - (table) The menu object that you want to display.
+		
+		This function converts a menu into pages so that it can be displayed properly
+	
+	]]
+	menu["CONFIG"] = nil
+	local formatMenu = {}
+	do -- This block arranges the root table into pages for easier monitor display
+		local pageNumber = 1
+		local pageHeight = config["yEnd"] - config["yStart"]
+		print(config["yStart"])
+		print(config["yEnd"])
+		local pagesRequired = math.ceil(#menu/pageHeight)
+		log.printAndLog("Pages Required = "..pagesRequired)
+		log.printAndLog("Pages Height = "..pageHeight)
+		local optionKey = 0
+		for i = 1, pagesRequired do
+			formatMenu[i] = {}
+			log.printToLog("Loading page #"..i)
+			for j = 1, pageHeight do
+				optionKey = optionKey + 1
+				if menu[optionKey] == nil then
+					break
+				else
+					formatMenu[i][j] = menu[optionKey]
+					log.printToLog("Adding new option to page "..i)
+					log.printToLog("\t"..optionKey..": "..menu[optionKey]["message"])
+				end
+			end	
+		end	
+	end
+	return formatMenu
+end
+
+function initColumnMenu()
+
+end
+
+function drawColumnMenu(menu, config, suppressConversion)
 	--[[
 		menu - (table) The menu object that you want to display.
 		
@@ -103,26 +155,21 @@ function drawMenu(menu)
 		Currently unfinished
 	
 	]]
-	local tempMenu = menu
-	tempMenu["CONFIG"] = nil
-	local numberMenuItems = #menu
-	local yEnd = menu["CONFIG"]["yEnd"]
-	local pageHeight = menu["CONFIG"]["yEnd"] - menu["CONFIG"]["yStart"]
-	local numberOfPages = math.ceil(numberMenuItems/pageHeight)
-	local menuTable = {}
-	local current = 0
-	for i = 1, numberOfPages do		
-		local page = {}
-		for j = 1, pageHeight do
-			current = current + 1
-			page[j] = tempMenu[j]
-		end
-		menuTable[i] = page			
+	
+	if config == nil then
+		log.printToLog("Loading config")
+		config = menu["CONFIG"]
 	end
-	local currentPage, currentItem = 1,1
+	if suppressConversion ~= true then	
+		log.printToLog("Converting menu to vertical page format")
+		menu = convertColumnMenu(menu, config)
+	else
+		log.printToLog("Menu conversion suppressed")
+	end
+	
 end
 
-function navigateMenu(menu)
+function navigateColumnMenuKB(menu)
 	--[[
 		menu - (table) The menu object that you want to navigate through.
 		
@@ -132,3 +179,47 @@ function navigateMenu(menu)
 	]]
 	
 end
+
+function navigateColumnMenuM(menu)
+	--[[
+		menu - (table) The menu object that you want to navigate through.
+		
+		This function allows you to navigate through a menu with a mouse.
+	]]
+	
+end
+
+
+log.printToLog("Loading up menu options")
+local x,y = term.getSize()
+local menu = newMenu("l", 3, colors.pink, nil, colors.purple, true, 3, 10)
+local options = {
+	[1] = "Anna",
+	[2] = "Elsa",
+	[3] = "Bonnibel",
+	[4] = "Aurora",
+	[5] = "Belle",
+	[6] = "Ariel",
+	[7] = "Glinda",
+	[8] = "Nessarose",
+	[9] = "Jasmine",
+	[10] = "Cinderella",
+	}
+
+for i,v in pairs(options) do
+	addOptionToMenu(menu, v, i)
+end
+
+local sMenu = textutils.serialize(menu)
+log.printToLog("Displaying Raw Menu Configuration\n")
+log.printToLog(sMenu)
+
+log.printToLog("Drawing menu")
+
+drawColumnMenu(menu)
+
+
+
+
+
+
