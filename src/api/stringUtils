@@ -1,7 +1,7 @@
 -- stringUtils: a bunch of extra string Manipulation functions. I will add more when I come up with new ideas/needs. Contributions very welcome
 
 
-local VERSION = 1.0
+local VERSION = 1.1
 
 function version()
 	return VERSION
@@ -34,4 +34,25 @@ function truncateString(str, mode, a, inclusive)
 		subStr = string.reverse(subStr)
 	end
 	return subStr
+end
+
+function centre(str, yLevel, suppress)
+	--[[
+		str - (string) the string that you want to print out in the centre of the terminal
+		yLevel - (number) optional, you can set the yLevel of the string's beginning if you like. It will default to the current yLevel
+		suppress - (boolean) if true then this function will not actually print the string for you (it will still return the centring coordinate though). This part of the function may be revised especially if I get feedback.
+		
+		this function takes a string and prints it out in the centre of the terminal. Returns the x coordinate required to start the string in the centre
+	]]
+	
+	local cX, cY = term.getCursorPos() -- current x and y level
+	local mX, mY = term.getSize() -- total x and y terminal size
+	local len = string.len(str)
+	yLevel = yLevel or cY
+	local nX = (mX-len)/2
+	term.setCursorPos(nX, yLevel)
+	if suppress ~= true then
+		print(str)
+	end
+	return nX
 end
