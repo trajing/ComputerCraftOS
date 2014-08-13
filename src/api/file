@@ -1,7 +1,7 @@
 -- File API
 -- Made by Arkandos
 
-local _version = 1.0
+local _version = 1.1
 
 function version() -- Should be part of any api to check for updates
 	return _version
@@ -40,3 +40,30 @@ function write(sFile, mode, input)
 	local text = hWrite.write(input)
 	hWrite.close()
 end
+
+--Begin: segment added by casillero. Currently used by no programs in OS, although I am developing a small game to add in the OS (while I was clearing my head to work on something else) which uses these new functions. If pull request is rejected, change battleship, to take this into account.
+
+--[[
+	path - the path of the file where the table is stored
+	
+	this function loads a stored table and returns it as a variable (type = table)
+]]
+
+function loadTable(path)
+	local file = fs.open(path, "r")
+	local data = textutils.unserialize(file.readAll())
+	file.close()
+	return data
+end
+
+--[[
+	data - 
+	path - the path of the file where the table is stored
+	
+function saveTable(data, path)
+	local file = fs.open(path, "w")
+	file.write(data)
+	file.close()
+end
+
+--End casillero segment
