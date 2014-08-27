@@ -1,0 +1,62 @@
+-- Configuration API to simplify saving and loading options from a file
+-- Arkandos
+
+local VERSION = 1.0
+dependency = { "file" }
+
+function version()
+	return VERSION
+end
+
+local configFolderName = "config"
+
+local function initConfigFolder()
+	if not fs.exists(configFolderName) then
+		fs.makeDir(configFolderName)
+	end
+end
+
+-- Gets a key from a config file. 
+-- If default is specified, a default value is made if the key cannot be found
+function loadConfig(configName, key, default)
+	initConfigFolder()
+	if fs.exists(configFolderName.."/"..configName) then
+		local t = textutils.unserialize(file.read(configFolderName.."/"..configName))
+		if t[key] ~= nil then
+			return t[key]
+		end
+		
+		if default ~= nil then
+			local t = { key = default }
+			file.write(configFolderName.."/"..configName, "w", textutils.serialize(t))
+			return default
+		end
+		
+	end	
+	
+	return false
+end
+
+-- Saves a value to a config file
+function saveConfig(configName, key, value)
+	initConfigFolder()
+	if fs.exists(configFolderName.."/"..configName) then
+		local t = loadConfig(configName, key)
+		if t == false then
+			t = { key = value }
+		else
+			t.key = value
+		end
+		
+		file.write(configFolderName.."/"..configName, "w", textutils.serialize(t))
+		
+		return true
+	end
+	
+	return false
+end
+
+function delete(configName)
+	initConfigFolder()
+	fs.delete(configFolderName.."/"..configName)
+end
