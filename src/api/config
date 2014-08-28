@@ -16,6 +16,10 @@ local function initConfigFolder()
 	end
 end
 
+function getFolderName()
+	return configFolderName
+end
+
 -- Gets a key from a config file. 
 -- If default is specified, a default value is made if the key cannot be found
 function loadConfig(configName, key, default)
@@ -27,11 +31,19 @@ function loadConfig(configName, key, default)
 		end
 		
 		if default ~= nil then
-			local t = { key = default }
+			local t.key = default
 			file.write(configFolderName.."/"..configName, "w", textutils.serialize(t))
 			return default
 		end
-		
+	else
+		local t = {}
+		if default ~= nil then
+			local t.key = default
+			file.write(configFolderName.."/"..configName, "w", textutils.serialize(t))
+			return default
+		else
+			file.write(configFolderName.."/"..configName, "w", textutils.serialize(t))
+		end
 	end	
 	
 	return false
