@@ -1,0 +1,146 @@
+-- LoginAPI 
+-- Arkandos
+local VERSION = 0.1
+local modemChannel = 1100
+dependency = { "config", "modem" }
+
+function version()
+	return VERSION
+end
+
+local userdata = {}
+local usingServer = false
+local isServer = false
+
+-- Local function to make sure the channel is open
+local function openModem()
+	modem.open("loginAPI", modemChannel)
+end
+
+-- Convert username and password to a table
+local function convertToUserdata(username, password)
+	local t = { username = username, password = password}
+	return t
+end
+
+-- Set if this computer uses another computer as host
+function useServer(bool)
+	usingServer = bool
+end
+
+-- Set if this server acts as a server. useServer needs to be false
+function isServer(bool)
+	if usingServer == false then
+		isServer = bool
+	end
+end
+
+-- Sends a modem message using a username, password and message
+function sendUserdataMessage(username, password, message, channel)
+	openModem()
+	local t = convertToUserdata(username, password)
+	t.message = message
+	t = textutils.serialize(t)
+	if channel == nil then
+		modem.transmit(modemChannel, modemChannel, t)
+	else
+		modem.transmit(channel, channel, t)
+	end
+end
+
+-- Tries to login. If usingServer is true, tries to contact server
+function login(username, password)
+	if usingServer then
+		if config.loadConfig("userdata", username) == password then
+			return true
+		else
+			return false
+		end
+	else
+		sendUserdataMessage(username, password, "login")
+		
+		local message = modem.receive(modemChannel, 5)
+		
+		if message == nil then
+			return false, "Could not contact server"
+		elseif message == "loginSuccess" then
+			return true, "Logged in successfully"
+		elseif message == "loginFailed" then
+			return false, "Login failed"
+		else
+			return false, "Unknown response"
+		end
+	end
+end
+
+function saveUserdata(username, password)
+	config.saveConfig("userdata", username, password)
+end
+
+-- Tries to register a username with password. If usingServer, tries to contact server. 
+-- TODO: Make a system to change password
+function registerUser(username, password)
+	
+	if usingServer then
+		sendUserdataMessage(username, password, "register")
+		
+		local message = modem.receive(modemChannel, 5)
+		
+		if message == nil then
+			return false, "Could not contact server"
+		elseif message == "registerSuccess" then
+			return true, "Registered successfully"
+		elseif message == "registerFailed" then 
+			return false, "Registration failed"
+		else
+			return false, "Unknown response received"
+		end
+	else
+		if login(username, password) then
+			return false
+		else
+			saveUserdata(username, password)
+			return true
+		end
+	end
+end
+
+-- Simple function to handle all server interactions.
+-- If channel is nil, defaults back to modemChannel
+-- If override is nil and the computer is advanced, relaunches itself in a different window.
+function hostServer(channel, override)
+	local advanced = term.isColor()
+	if override = nil then override = false end
+	if channel == nil then channel = modemChannel end
+	
+	if advanced = true and override = false then
+		multishell.launch("Server", "programs/simpleServer")
+	end
+	
+	openModem()
+	
+	while true do
+		local t = modem.receive(channel)
+		if type(t) == "table" then
+			if t.message ~= nil then
+				if t.message == "login" then
+					if login(t.username, t.password) then
+						modem.transmit(channel, channel, "loginSuccess")
+					else
+						modem.transmit(channel, channel, "loginFailed")
+					end
+				
+				elseif t.message = "register" then
+					if registerUser(t.username, t.password) then
+						modem.transmit(channel, channel, "registerSuccess")
+					else
+						modem.transmit(channel, channel, "registerFailed")
+					end
+				
+				end
+			end
+		end
+	end
+	
+end
+
